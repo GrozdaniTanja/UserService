@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MONGO_DB_URI: ${{ secrets.MONGO_DB_URI_2 }}
-      MONGO_DB_DATABASE: ${{ secrets.MONGO_DB_DATABASE_2 }}
+      MONGO_DB_URI_MS: ${{ secrets.MONGO_DB_URI_2 }}
+      MONGO_DB_DATABASE_MS: ${{ secrets.MONGO_DB_DATABASE_2 }}
 
     steps:
       - name: Checkout repository
