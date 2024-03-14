@@ -1,0 +1,130 @@
+package com.tanja.user_service.service;
+
+import io.grpc.stub.StreamObserver;
+import io.quarkus.grpc.GrpcService;
+import jakarta.inject.Inject;
+import com.tanja.user_service.User;
+import com.tanja.user_service.UserServiceGrpc;
+import com.tanja.user_service.repository.UserRepository;
+import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@GrpcService
+public class UserService extends UserServiceGrpc.UserServiceImplBase {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
+
+    @Inject
+    private UserRepository userRepository;
+
+
+    @Override
+    public void createUser(User.CreateUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
+        LOG.info("Received createUser request");
+        com.tanja.user_service.model.User user = new com.tanja.user_service.model.User(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getRole()
+        );
+
+        ObjectId id = new ObjectId();
+        user.setId(id);
+
+        userRepository.persist(user);
+
+        User.UserResponse response = User.UserResponse.newBuilder()
+                .setId(user.getId().toHexString())
+                .setFirstName(user.getFirstName())
+                .setLastName(user.getLastName())
+                .setPassword(user.getPassword())
+                .setRole(user.getRole())
+                .build();
+        responseStreamObserver.onNext(response);
+        responseStreamObserver.onCompleted();
+        LOG.info("User created successfully");
+    }
+
+    @Override
+    public void getUser(User.GetUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
+        LOG.info("Received getUser request");
+        ObjectId id = new ObjectId(request.getId());
+        com.tanja.user_service.model.User user = userRepository.findById(id);
+
+        if (user != null) {
+            User.UserResponse response = User.UserResponse.newBuilder()
+                    .setId(user.getId().toHexString())
+                    .setFirstName(user.getFirstName())
+                    .setLastName(user.getLastName())
+                    .setPassword(user.getPassword())
+                    .setRole(user.getRole())
+                    .build();
+
+            responseStreamObserver.onNext(response);
+            responseStreamObserver.onCompleted();
+        } else {
+            responseStreamObserver.onError(new Exception("User not found"));
+        }
+        LOG.info("getUser request processed");
+    }
+
+    @Override
+    public void editUser(User.EditUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
+        LOG.info("Received editUser request");
+        ObjectId id = new ObjectId(request.getId());
+        com.tanja.user_service.model.User user = userRepository.findById(id);
+
+        if (user != null) {
+            if (request.hasFirstName()) {
+                user.setFirstName(request.getFirstName());
+            }
+            if (request.hasLastName()) {
+                user.setLastName(request.getLastName());
+            }
+            if (request.hasEmail()) {
+                user.setEmail(request.getEmail());
+            }
+            if (request.hasPassword()) {
+                user.setPassword(request.getPassword());
+            }
+            if (request.hasRole()) {
+                user.setRole(request.getRole());
+            }
+
+            userRepository.update(user);
+
+            User.UserResponse response = User.UserResponse.newBuilder()
+                    .setId(user.getId().toHexString())
+                    .setFirstName(user.getFirstName())
+                    .setLastName(user.getLastName())
+                    .setPassword(user.getPassword())
+                    .setRole(user.getRole())
+                    .build();
+
+            responseStreamObserver.onNext(response);
+            responseStreamObserver.onCompleted();
+        } else {
+            responseStreamObserver.onError(new Exception("User not found"));
+        }
+        LOG.info("editUser request processed");
+    }
+
+
+
+    @Override
+    public void deleteUser(User.DeleteUserRequest request, StreamObserver<User.DeleteUserResponse> responseStreamObserver) {
+        LOG.info("Received deleteUser request");
+        ObjectId id = new ObjectId(request.getId());
+        boolean success = userRepository.deleteById(id);
+
+        User.DeleteUserResponse response = User.DeleteUserResponse.newBuilder()
+                .setSuccess(success)
+                .build();
+
+        responseStreamObserver.onNext(response);
+        responseStreamObserver.onCompleted();
+        LOG.info("deleteUser request processed");
+    }
+}
