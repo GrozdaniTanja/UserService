@@ -1,5 +1,6 @@
 package com.tanja.user_service.service;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.quarkus.grpc.GrpcService;
 import jakarta.inject.Inject;
@@ -21,7 +22,6 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
 
     @Override
     public void createUser(User.CreateUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
-        try {
             LOG.info("Received createUser request: {}", request);
             com.tanja.user_service.model.User user = new com.tanja.user_service.model.User(
                     request.getFirstName(),
@@ -43,20 +43,14 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
                     .setPassword(user.getPassword())
                     .setRole(user.getRole())
                     .build();
-            // Send the response to the client
+
             responseStreamObserver.onNext(response);
             responseStreamObserver.onCompleted();
-
             LOG.info("User created successfully with ID: {}", user.getId().toHexString());
-        } catch (Exception e) {
-            LOG.error("Error occurred while processing createUser request: {}", e.getMessage());
-            responseStreamObserver.onError(e);
-        }
     }
 
     @Override
     public void getUser(User.GetUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
-        try {
             LOG.info("Received getUser request for ID: {}", request.getId());
             ObjectId id = new ObjectId(request.getId());
             com.tanja.user_service.model.User user = userRepository.findById(id);
@@ -76,14 +70,10 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
             } else {
                 String errorMessage = "User not found for ID: " + request.getId();
                 LOG.warn(errorMessage);
-                responseStreamObserver.onError(new Exception(errorMessage));
+                responseStreamObserver.onError(Status.NOT_FOUND.asRuntimeException());
             }
-        } catch (Exception e) {
-            String errorMessage = "Error occurred while processing getUser request: " + e.getMessage();
-            LOG.error(errorMessage, e);
-            responseStreamObserver.onError(e);
         }
-    }
+
 
     @Override
     public void editUser(User.EditUserRequest request, StreamObserver<User.UserResponse> responseStreamObserver) {
