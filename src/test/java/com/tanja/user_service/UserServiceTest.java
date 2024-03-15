@@ -1,4 +1,5 @@
-package com.tanja.user_service;import static org.junit.jupiter.api.Assertions.assertEquals;
+package com.tanja.user_service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;

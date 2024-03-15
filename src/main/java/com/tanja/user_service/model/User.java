@@ -11,7 +11,7 @@ import org.bson.types.ObjectId;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@MongoEntity(collection="user")
+@MongoEntity(database = "ITA2",collection="user")
 @Builder
 public class User {
 
