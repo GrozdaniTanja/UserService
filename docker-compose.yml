@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  user-service:
+    image: tanjag/user_service-jvm:1.0.0
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo_db
+    environment:
+      MONGO_DB_URI_2: ${MONGO_DB_URI_2}
+      MONGO_DB_DATABASE_2: ${MONGO_DB_DATABASE_2}
+
+  mongo_db:
+    image: mongo:7.0.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
